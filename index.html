@@ -44,8 +44,9 @@
   <!-- 지도 -->
   <section id="view-map" class="view">
     <h2 class="section-title">이동경로 지도</h2>
-    <p class="section-note">번호는 방문 순서입니다. 마커나 아래 목록을 탭하면 상세 정보가 표시됩니다.</p>
+    <p class="section-note">번호는 방문 순서입니다. 금색은 국가 간 이동, 남색 점선은 국가 내 이동입니다.</p>
     <div id="map"></div>
+    <div class="map-legend-static" id="mapLegend"></div>
     <div class="stop-list" id="stopList"></div>
   </section>
 
@@ -59,15 +60,13 @@
 
   <!-- 예산 -->
   <section id="view-budget" class="view">
-    <h2 class="section-title">예산 개산(추정)</h2>
-    <p class="section-note">2026년 9월 기준 개산 추정치 — 전문 여행사 견적 확정 전 참고용입니다.</p>
-    <table class="budget-table">
-      <thead><tr><th>항목</th><th>산출 기준</th><th style="text-align:right;">금액(₩)</th><th>비고</th></tr></thead>
-      <tbody id="budgetBody"></tbody>
-      <tfoot>
-        <tr><td>총합계</td><td></td><td class="amt" id="budgetTotal"></td><td id="budgetPerPerson"></td></tr>
-      </tfoot>
-    </table>
+    <h2 class="section-title">예산 상세(추정)</h2>
+    <p class="section-note">2026년 9월 기준 개산 추정치입니다. 카테고리를 탭하면 세부 항목이 펼쳐집니다.</p>
+    <div id="budgetCategories"></div>
+    <div class="budget-grand">
+      <div class="row"><span>총합계</span><span id="budgetGrandTotal"></span></div>
+      <div class="row sub"><span id="budgetPerPerson"></span></div>
+    </div>
   </section>
 
   <!-- 체크리스트 -->

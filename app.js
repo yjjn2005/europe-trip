@@ -39,6 +39,10 @@ async function sha256Hex(str) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+function syncNamespace() {
+  return (TRIP && TRIP.id) ? TRIP.id : "trip";
+}
+
 function setSyncStatus(text, kind) {
   const el = document.getElementById("syncStatus");
   if (!el) return;
@@ -49,7 +53,7 @@ function setSyncStatus(text, kind) {
 async function pushSync() {
   if (!state.pin || !window.SYNC_API_BASE) return;
   try {
-    const key = await sha256Hex("europe-trip:" + state.pin);
+    const key = await sha256Hex(syncNamespace() + ":" + state.pin);
     const res = await fetch(`${window.SYNC_API_BASE}/state`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -75,7 +79,7 @@ async function pullSync(showStatus = true) {
   if (!state.pin || !window.SYNC_API_BASE) return;
   try {
     if (showStatus) setSyncStatus("불러오는 중…", null);
-    const key = await sha256Hex("europe-trip:" + state.pin);
+    const key = await sha256Hex(syncNamespace() + ":" + state.pin);
     const res = await fetch(`${window.SYNC_API_BASE}/state?key=${key}`);
     if (res.status === 404) {
       setSyncStatus("이 코드로 저장된 데이터가 없습니다 — 새로 시작합니다", null);
@@ -117,6 +121,18 @@ function initTabs() {
 }
 
 // ---------------- Header ----------------
+function applyTripMeta() {
+  document.title = `${TRIP.title} — ${TRIP.subtitle}`;
+  const titleEl = document.getElementById("tripTitle");
+  if (titleEl) titleEl.textContent = `${TRIP.title} · ${TRIP.subtitle}`;
+  const subEl = document.querySelector(".app-header .sub");
+  if (subEl) {
+    const s = new Date(TRIP.start), e = new Date(TRIP.end);
+    const fmt = d => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+    subEl.textContent = `${fmt(s)} 출발 — ${fmt(e)} 도착 · ${TRIP.people}`;
+  }
+}
+
 function updateHeaderProgress() {
   const total = DAILY.length;
   const done = Object.values(state.daysDone).filter(Boolean).length;
@@ -160,7 +176,9 @@ function renderOverview() {
   document.getElementById("principleList").innerHTML = principles.map(p => `<li>${p}</li>`).join("");
 
   const rm = document.getElementById("regionSummary");
-  rm.innerHTML = REGIONS.map(r => `
+  rm.innerHTML = REGIONS.map(r => {
+    const tipEntry = REGION_TIPS.find(t => t.region === r.region);
+    return `
     <div class="region-block">
       <div class="region-head"><span>${r.region}</span><span class="range">${r.range}</span></div>
       ${r.cities.map(c => `
@@ -173,8 +191,15 @@ function renderOverview() {
           </dl>
         </div>
       `).join("")}
+      ${tipEntry ? `
+        <div class="tips-box">
+          <div class="tips-title">꼭 알아야 할 사항</div>
+          <ul class="tips-list">${tipEntry.tips.map(t => `<li>${t}</li>`).join("")}</ul>
+        </div>
+      ` : ""}
     </div>
-  `).join("");
+  `;
+  }).join("");
 }
 
 // ---------------- Map ----------------
@@ -194,14 +219,42 @@ function initMapIfNeeded() {
     fullscreenControl: false,
   });
 
-  const path = STOPS.map(s => ({ lat: s.lat, lng: s.lng }));
-  new google.maps.Polyline({
-    path,
-    geodesic: true,
-    strokeColor: "#B7975C",
-    strokeOpacity: 0.9,
-    strokeWeight: 3,
-    map: mapInstance,
+  const interSegments = [];
+  const intraSegments = [];
+  for (let i = 0; i < STOPS.length - 1; i++) {
+    const a = STOPS[i], b = STOPS[i + 1];
+    const seg = [{ lat: a.lat, lng: a.lng }, { lat: b.lat, lng: b.lng }];
+    if (a.nation !== b.nation) interSegments.push(seg);
+    else intraSegments.push(seg);
+  }
+
+  const routeLines = [];
+  interSegments.forEach(seg => {
+    routeLines.push(new google.maps.Polyline({
+      path: seg,
+      geodesic: true,
+      strokeColor: "#B7975C",
+      strokeOpacity: 0.95,
+      strokeWeight: 4,
+      map: mapInstance,
+      zIndex: 2,
+    }));
+  });
+  intraSegments.forEach(seg => {
+    routeLines.push(new google.maps.Polyline({
+      path: seg,
+      geodesic: true,
+      strokeColor: "#0F2544",
+      strokeOpacity: 0,
+      strokeWeight: 3,
+      icons: [{
+        icon: { path: "M 0,-1 0,1", strokeOpacity: 1, scale: 3 },
+        offset: "0",
+        repeat: "12px",
+      }],
+      map: mapInstance,
+      zIndex: 1,
+    }));
   });
 
   const bounds = new google.maps.LatLngBounds();
@@ -237,6 +290,11 @@ function initMapIfNeeded() {
   });
 
   mapInstance.fitBounds(bounds, 40);
+
+  document.getElementById("mapLegend").innerHTML = `
+    <div class="legend-item"><span class="swatch gold"></span>국가 간 이동 (${interSegments.length}구간)</div>
+    <div class="legend-item"><span class="swatch navy-dash"></span>국가 내 이동 (${intraSegments.length}구간)</div>
+  `;
 
   document.getElementById("stopList").innerHTML = STOPS.map((s, i) => `
     <div class="stop-row" data-idx="${i}">
@@ -332,18 +390,46 @@ function renderDaily() {
 
 // ---------------- Budget ----------------
 function renderBudget() {
-  const tbody = document.getElementById("budgetBody");
-  tbody.innerHTML = BUDGET.map(b => `
-    <tr>
-      <td>${b.item}</td>
-      <td>${b.basis}</td>
-      <td class="amt">${b.amount.toLocaleString("ko-KR")}</td>
-      <td>${b.note}</td>
-    </tr>
-  `).join("");
-  const total = BUDGET.reduce((s, b) => s + b.amount, 0);
-  document.getElementById("budgetTotal").textContent = total.toLocaleString("ko-KR");
-  document.getElementById("budgetPerPerson").textContent = "1인당 약 " + Math.round(total / 2).toLocaleString("ko-KR") + "원";
+  const container = document.getElementById("budgetCategories");
+  let grandTotal = 0;
+
+  container.innerHTML = BUDGET_DETAILED.map((cat, ci) => {
+    const subtotal = cat.items.reduce((s, it) => s + it.amount, 0);
+    grandTotal += subtotal;
+    return `
+      <div class="budget-cat">
+        <button class="budget-cat-head" data-ci="${ci}">
+          <span class="cat-name"><span class="caret">▸</span>${cat.category}</span>
+          <span class="cat-sub">${subtotal.toLocaleString("ko-KR")}원</span>
+        </button>
+        <table class="budget-table budget-cat-body" id="budgetCat-${ci}">
+          <tbody>
+            ${cat.items.map(it => `
+              <tr>
+                <td>${it.label}</td>
+                <td>${it.note}</td>
+                <td class="amt">${it.amount.toLocaleString("ko-KR")}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("budgetGrandTotal").textContent = grandTotal.toLocaleString("ko-KR") + "원";
+  document.getElementById("budgetPerPerson").textContent = "1인당 약 " + Math.round(grandTotal / 2).toLocaleString("ko-KR") + "원";
+
+  container.querySelectorAll(".budget-cat-head").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const body = document.getElementById("budgetCat-" + btn.dataset.ci);
+      const open = body.classList.toggle("open");
+      btn.classList.toggle("open", open);
+    });
+  });
+  // Open the first category by default
+  const firstBtn = container.querySelector(".budget-cat-head");
+  if (firstBtn) firstBtn.click();
 }
 
 // ---------------- Checklist ----------------
@@ -413,6 +499,7 @@ function initSyncBar() {
 // ---------------- Boot ----------------
 function boot() {
   loadLocal();
+  applyTripMeta();
   initTabs();
   renderOverview();
   renderDayFilters();
