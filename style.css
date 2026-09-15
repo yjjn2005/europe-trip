@@ -448,13 +448,18 @@ button {
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
-  transition: all 0.12s ease;
+  transition: transform 0.12s ease, background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.day-filters button:active {
+  transform: scale(0.95);
 }
 
 .day-filters button.active {
   background: var(--navy);
   color: var(--gold-soft);
   border-color: var(--navy);
+  box-shadow: 0 2px 8px rgba(15,37,68,0.25);
 }
 
 .day-card {
@@ -597,6 +602,11 @@ button {
   font-size: 14px;
   font-weight: 700;
   text-align: left;
+  transition: transform 0.1s ease;
+}
+
+.budget-cat-head:active {
+  transform: scale(0.99);
 }
 
 .budget-cat-head .cat-name {
@@ -757,6 +767,12 @@ button {
   padding: 5px 10px;
   color: var(--navy);
   height: 28px;
+  transition: transform 0.12s ease, background 0.14s ease;
+}
+
+.addr-row button.copy:active {
+  transform: scale(0.93);
+  background: var(--gold-soft);
 }
 
 /* ---------- Sync bar ---------- */
@@ -791,6 +807,12 @@ button {
   padding: 9px 16px;
   font-size: 13px;
   font-weight: 600;
+  box-shadow: 0 2px 6px rgba(15,37,68,0.25);
+  transition: transform 0.12s ease;
+}
+
+.sync-bar button:active {
+  transform: scale(0.95);
 }
 
 .sync-bar .status {
@@ -805,10 +827,8 @@ button {
 .tabbar {
   background: var(--navy-deep);
   display: flex;
-  gap: 8px;
-  padding: 10px 14px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  gap: 6px;
+  padding: 10px 10px;
   border-top: 1px solid rgba(183,151,92,0.25);
   position: relative;
 }
@@ -825,32 +845,39 @@ button {
 }
 
 .tabbar button {
-  flex: 0 0 auto;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid transparent;
-  color: #A9B3C4;
+  flex: 1 1 0;
+  min-width: 0;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.05);
+  color: #C7D0DE;
   font-family: var(--sans);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 600;
-  padding: 9px 14px;
+  padding: 9px 4px 8px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  gap: 7px;
-  border-radius: 999px;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 13px;
   white-space: nowrap;
-  transition: all 0.14s ease;
+  transition: transform 0.12s ease, background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.tabbar button:active {
+  transform: scale(0.95);
 }
 
 .tabbar button .ic {
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
 }
 
 .tabbar button.active {
   background: linear-gradient(160deg, var(--gold) 0%, var(--gold-dark) 100%);
+  border-color: transparent;
   color: var(--navy-deep);
-  box-shadow: 0 2px 8px rgba(183,151,92,0.35);
+  box-shadow: 0 3px 10px rgba(183,151,92,0.4);
 }
 
 /* ---------- Wide screens: center the top bar content ---------- */
@@ -860,5 +887,6 @@ button {
     margin: 0 auto;
   }
   .app-header { padding-left: 0; padding-right: 0; }
-  .tabbar { padding-left: 0; padding-right: 0; justify-content: flex-start; }
+  .tabbar { padding-left: 0; padding-right: 0; }
+  .tabbar button { flex: 0 1 140px; }
 }
