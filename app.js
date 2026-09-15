@@ -267,13 +267,8 @@ function initMapIfNeeded() {
       path: seg,
       geodesic: true,
       strokeColor: "#0F2544",
-      strokeOpacity: 0,
+      strokeOpacity: 0.85,
       strokeWeight: 3,
-      icons: [{
-        icon: { path: "M 0,-1 0,1", strokeOpacity: 1, scale: 3 },
-        offset: "0",
-        repeat: "12px",
-      }],
       map: mapInstance,
       zIndex: 1,
     }));
@@ -316,7 +311,7 @@ function initMapIfNeeded() {
 
   document.getElementById("mapLegend").innerHTML = `
     <div class="legend-item"><span class="swatch gold"></span>국가 간 이동 — 그룹 번호가 바뀜 (${interSegments.length}구간)</div>
-    <div class="legend-item"><span class="swatch navy-dash"></span>국가 내 이동 — 같은 그룹 안 a→b→c (${intraSegments.length}구간)</div>
+    <div class="legend-item"><span class="swatch navy"></span>국가 내 이동 — 같은 그룹 안 a→b→c (${intraSegments.length}구간)</div>
   `;
 
   document.getElementById("stopList").innerHTML = STOPS.map((s, i) => `
