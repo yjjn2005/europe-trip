@@ -241,37 +241,78 @@ function initMapIfNeeded() {
     fullscreenControl: false,
   });
 
-  const interSegments = [];
-  const intraSegments = [];
-  for (let i = 0; i < STOPS.length - 1; i++) {
-    const a = STOPS[i], b = STOPS[i + 1];
-    const seg = [{ lat: a.lat, lng: a.lng }, { lat: b.lat, lng: b.lng }];
-    if (a.nation !== b.nation) interSegments.push(seg);
-    else intraSegments.push(seg);
-  }
+  // ---- 일자별 경로: 당일(오전~저녁) 이동은 빨간선, 하루→다음날 이동은 파란선 ----
+  const toLatLng = id => {
+    const wp = WAYPOINTS[id];
+    return wp ? { lat: wp[0], lng: wp[1] } : null;
+  };
+
+  const withinDaySegs = [];   // 빨간선: 같은 날 안에서의 이동
+  const betweenDaySegs = [];  // 파란선: 전날 마지막 지점 → 다음날 첫 지점
+  let prevDayLastPoint = null;
+
+  DAILY.forEach(day => {
+    const pts = (day.route || []).map(toLatLng).filter(Boolean);
+    if (pts.length === 0) return;
+    for (let i = 0; i < pts.length - 1; i++) {
+      withinDaySegs.push([pts[i], pts[i + 1]]);
+    }
+    if (prevDayLastPoint) {
+      betweenDaySegs.push([prevDayLastPoint, pts[0]]);
+    }
+    prevDayLastPoint = pts[pts.length - 1];
+  });
 
   const routeLines = [];
-  interSegments.forEach(seg => {
-    routeLines.push(new google.maps.Polyline({
-      path: seg,
-      geodesic: true,
-      strokeColor: "#F2B807",
-      strokeOpacity: 0.95,
-      strokeWeight: 5,
-      map: mapInstance,
-      zIndex: 2,
-    }));
-  });
-  intraSegments.forEach(seg => {
+  betweenDaySegs.forEach(seg => {
     routeLines.push(new google.maps.Polyline({
       path: seg,
       geodesic: true,
       strokeColor: "#2260D8",
-      strokeOpacity: 0.85,
+      strokeOpacity: 0.8,
       strokeWeight: 2,
       map: mapInstance,
       zIndex: 1,
     }));
+  });
+  withinDaySegs.forEach(seg => {
+    routeLines.push(new google.maps.Polyline({
+      path: seg,
+      geodesic: true,
+      strokeColor: "#D6362A",
+      strokeOpacity: 0.9,
+      strokeWeight: 2,
+      map: mapInstance,
+      zIndex: 2,
+    }));
+  });
+
+  // ---- 당일투어 등 보조 지점(도시 허브가 아닌 웨이포인트)에 작은 점 마커 ----
+  const hubIds = new Set(["lisbon", "porto", "palermo", "taormina", "siracusa", "athens", "nafplio", "nice", "aix", "firenze", "venezia", "roma"]);
+  const shownWaypoints = new Set();
+  const waypointInfoWindow = new google.maps.InfoWindow();
+  Object.keys(WAYPOINT_LABELS).forEach(id => {
+    if (hubIds.has(id) || shownWaypoints.has(id) || !WAYPOINTS[id]) return;
+    shownWaypoints.add(id);
+    const pos = toLatLng(id);
+    const dot = new google.maps.Marker({
+      position: pos,
+      map: mapInstance,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 5,
+        fillColor: "#D6362A",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 1.5,
+      },
+      title: WAYPOINT_LABELS[id],
+      zIndex: 3,
+    });
+    dot.addListener("click", () => {
+      waypointInfoWindow.setContent(`<div style="font-family:'Noto Sans KR',sans-serif;font-size:12.5px;font-weight:700;color:#0F2544;">${WAYPOINT_LABELS[id]}</div>`);
+      waypointInfoWindow.open(mapInstance, dot);
+    });
   });
 
   const bounds = new google.maps.LatLngBounds();
@@ -310,8 +351,8 @@ function initMapIfNeeded() {
   mapInstance.fitBounds(bounds, 40);
 
   document.getElementById("mapLegend").innerHTML = `
-    <div class="legend-item"><span class="swatch gold"></span>국가 간 이동 — 굵은 노란선, 그룹 번호가 바뀜 (${interSegments.length}구간)</div>
-    <div class="legend-item"><span class="swatch navy"></span>국가 내 이동 — 얇은 파란선, 같은 그룹 안 a→b→c (${intraSegments.length}구간)</div>
+    <div class="legend-item"><span class="swatch navy"></span>일별 이동 — 전날 마지막 지점 → 다음날 첫 지점 (파란선)</div>
+    <div class="legend-item"><span class="swatch red"></span>당일 동선 — 오전·오후·저녁 이동, 당일투어 왕복 (빨간선)</div>
   `;
 
   document.getElementById("stopList").innerHTML = STOPS.map((s, i) => `

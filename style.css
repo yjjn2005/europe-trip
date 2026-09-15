@@ -355,6 +355,7 @@ button {
 
 .map-legend-static .swatch.gold { background: #F2B807; height: 5px; }
 .map-legend-static .swatch.navy { background: #2260D8; height: 3px; }
+.map-legend-static .swatch.red { background: #D6362A; height: 3px; }
 
 .stop-list {
   margin-top: 18px;
