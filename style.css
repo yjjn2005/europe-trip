@@ -823,6 +823,20 @@ button {
 .sync-bar .status.ok { color: var(--ok); font-weight: 600; }
 .sync-bar .status.err { color: var(--danger); font-weight: 600; }
 
+.settings-info {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.settings-info p { margin: 0 0 10px; }
+.settings-info p:last-child { margin-bottom: 0; }
+.settings-info strong { color: var(--navy); }
+
 /* ---------- Top nav (pill buttons under header) ---------- */
 .tabbar {
   background: var(--navy-deep);

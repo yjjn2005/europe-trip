@@ -35,6 +35,7 @@
     <button data-view="view-budget"><span class="ic">💰</span>예산</button>
     <button data-view="view-checklist"><span class="ic">✅</span>체크</button>
     <button data-view="view-address"><span class="ic">📍</span>주소</button>
+    <button data-view="view-settings"><span class="ic">⚙️</span>설정</button>
   </nav>
 </div>
 
@@ -84,12 +85,7 @@
   <!-- 체크리스트 -->
   <section id="view-checklist" class="view">
     <h2 class="section-title">준비사항 체크리스트</h2>
-    <div class="sync-bar">
-      <span>동기화 코드</span>
-      <input type="text" id="pinInput" placeholder="예: 5930" maxlength="12" />
-      <button id="pinConnect">연결</button>
-      <span class="status" id="syncStatus">이 기기에만 저장됨 (코드 연결 시 모든 기기 동기화)</span>
-    </div>
+    <p class="section-note">기기 간 동기화 코드는 설정 탭에서 연결할 수 있습니다.</p>
     <div id="checklistBody"></div>
   </section>
 
@@ -98,6 +94,22 @@
     <h2 class="section-title">도시별 주소록</h2>
     <p class="section-note">Uber·현지 택시 앱에 그대로 복사해 입력하실 수 있습니다.</p>
     <div id="addressList"></div>
+  </section>
+
+  <!-- 설정 -->
+  <section id="view-settings" class="view">
+    <h2 class="section-title">설정</h2>
+    <p class="section-note">기기 간 동기화 코드(PIN)를 여기서 연결·관리합니다.</p>
+    <div class="sync-bar">
+      <span>동기화 코드</span>
+      <input type="text" id="pinInput" placeholder="예: 5930" maxlength="12" />
+      <button id="pinConnect">연결</button>
+      <span class="status" id="syncStatus">이 기기에만 저장됨 (코드 연결 시 모든 기기 동기화)</span>
+    </div>
+    <div class="settings-info">
+      <p><strong>사용 방법</strong> — 아무 숫자나 코드로 정해서 입력 후 "연결"을 누르세요. 다른 기기(가족 폰 등)에서 같은 앱을 열고 똑같은 코드를 입력하면, 체크리스트·일정 완료 표시가 그대로 불러와지고 이후 자동으로 서로 동기화됩니다.</p>
+      <p><strong>주의</strong> — 코드를 다르게 입력하면 서로 다른 저장공간이 되어 동기화되지 않습니다. 가족과 반드시 같은 코드를 사용하세요.</p>
+    </div>
   </section>
 
 </div>
