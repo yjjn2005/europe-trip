@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>부부 은퇴여행 — 유럽 4개국 60일</title>
-<meta name="description" content="2027년 1월 부부 은퇴여행 유럽 4개국 60일 힐링 일정 — 지도, 일자별 일정, 예산, 체크리스트" />
+<title>2027 유럽 60일 부부 자유여행 실행계획</title>
+<meta name="description" content="2027 유럽 60일 부부 자유여행 실행계획 — 도심 거점형, 지도·일자별 일정·예산·체크리스트" />
 <meta name="theme-color" content="#0F2544" />
 <link rel="manifest" href="./manifest.json" />
 <link rel="icon" href="./icons/icon-192.png" />
@@ -19,12 +19,12 @@
 <div class="app-top">
   <header class="app-header">
     <p class="eyebrow">PRIVATE TRAVEL DOSSIER</p>
-    <h1 id="tripTitle">부부 은퇴여행 · 유럽 4개국 60일</h1>
-    <p class="sub">2027.01.10 인천 출발 — 2027.03.12 인천 도착 · 부부 2인</p>
+    <h1 id="tripTitle">2027 유럽 60일 부부 자유여행 실행계획</h1>
+    <p class="sub">2027.01.10 출발 — 2027.03.10 밀라노 출발(인천 3.11 도착) · 부부 2인</p>
     <div class="progress">
       <span id="dDayLabel" class="dday">D-day</span>
       <div class="bar"><span id="progressBar" style="width:0%"></span></div>
-      <span id="progressLabel" class="count">0 / 62일 완료</span>
+      <span id="progressLabel" class="count">0 / 60일 완료</span>
     </div>
   </header>
 
@@ -66,7 +66,7 @@
   <!-- 일정 -->
   <section id="view-daily" class="view">
     <h2 class="section-title">일자별 상세 일정</h2>
-    <p class="section-note">62일 전체 일정입니다. 완료한 날짜를 체크하면 자동 저장·동기화됩니다.</p>
+    <p class="section-note">60일 전체 일정입니다(D1~D60). 완료한 날짜를 체크하면 자동 저장·동기화됩니다.</p>
     <div class="day-filters" id="dayFilters"></div>
     <div id="dailyList"></div>
   </section>
@@ -91,8 +91,9 @@
 
   <!-- 주소록 -->
   <section id="view-address" class="view">
-    <h2 class="section-title">도시별 주소록</h2>
-    <p class="section-note">Uber·현지 택시 앱에 그대로 복사해 입력하실 수 있습니다.</p>
+    <h2 class="section-title">숙박 예약표 & 주소록</h2>
+    <p class="section-note">숙박 예약표는 체크인·아웃·권장지역·1박예산 계획안입니다. 주소는 Uber·현지 택시 앱에 그대로 복사해 입력하실 수 있습니다.</p>
+    <div id="accommodationsTable" style="margin-bottom:20px;"></div>
     <div id="addressList"></div>
   </section>
 

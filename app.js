@@ -129,7 +129,7 @@ function applyTripMeta() {
   if (subEl) {
     const s = new Date(TRIP.start), e = new Date(TRIP.end);
     const fmt = d => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-    subEl.textContent = `${fmt(s)} 출발 — ${fmt(e)} 도착 · ${TRIP.people}`;
+    subEl.textContent = `${fmt(s)} 출발 — ${fmt(e)} 밀라노 출발(인천 도착 익일 예상) · ${TRIP.people}`;
   }
 }
 
@@ -154,25 +154,25 @@ function updateHeaderProgress() {
 function renderOverview() {
   const kv = document.getElementById("overviewKV");
   const rows = [
-    ["여행 목적", "은퇴 후 첫 장기 부부 여행 — 60대 맞춤 힐링 자유여행, 유럽 4개국을 거점 연박으로 여유 있게 둘러보는 일정"],
-    ["기간", `2027년 1월 10일(일) 인천 출발 ~ 2027년 3월 12일(금) 인천 도착 (총 ${TRIP.totalDays}일, ${TRIP.nights}박)`],
-    ["방문국", "포르투갈 → 이탈리아(로마·피렌체·베네치아) → 그리스(아테네·산토리니·크레타) → 프랑스(파리·니스) → 이탈리아(소렌토·밀라노)"],
+    ["여행 목적", "은퇴 후 첫 장기 부부 여행 — 도심 거점형 자유여행. 관광지를 많이 방문하기보다 장기간 안전하게 여행을 지속하는 데 초점"],
+    ["기간", `2027년 1월 10일(일) 인천 출발 ~ 2027년 3월 10일(수) 밀라노 출발 (총 ${TRIP.totalDays}일, ${TRIP.nights}박) — 인천 도착은 3월 11일 예상`],
+    ["방문국", "포르투갈 → 이탈리아(1차: 로마·피렌체·베네치아) → 그리스(아테네·산토리니) → 프랑스(니스·아비뇽·리옹·파리) → 이탈리아(2차: 나폴리·로마·밀라노)"],
     ["인원", TRIP.people],
-    ["여행 형태", "거점 연박 자유여행 — 도시당 4~8박, 도어투도어(택시·우버) 이동"],
-    ["숙소 원칙", "평지 및 엘리베이터 필수 — 계단·돌바닥을 피하고 대로변 호텔 선정"],
-    ["이동 수단", "고속열차 1등석 & FSC(풀서비스) 항공 중심"],
-    ["일정 원칙", "1일 1주요 명소 · 3~4일마다 완충일(Buffer Day) · 박물관·유적지 패스트트랙 사전예약"],
+    ["핵심 운영", "오전 핵심 관광 1곳 + 오후 선택 일정, 숙박 최소 3박 중심"],
+    ["숙박 원칙", "엘리베이터·조식·평지 접근 우선, 무료취소 조건 우선 확보"],
+    ["이동 수단", "장거리는 항공, 국가 내 도심 이동은 고속철"],
+    ["예상 총예산", "부부 2인 약 5,000만원 (권장 범위 4,200만~5,500만원, 1유로 1,650원 기준)"],
   ];
   kv.innerHTML = rows.map(([k, v]) => `<div class="kv-row"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
 
   const principles = [
-    "숙소 및 동선 관리 — 거점 도시 장기 연박으로 잦은 짐 싸기와 이동 스트레스를 최소화했습니다(도시당 4~8박).",
-    "평지 및 엘리베이터 필수 — 계단과 돌바닥을 피하고 대로변 호텔을 선정했습니다(자유대로, 도우루 강변, 바르베리니 광장 등).",
-    "도어 투 도어(Door-to-Door) — 기차역·공항 이동 시 택시·우버를 적극 활용하도록 설계했습니다.",
-    "1일 1주요 명소 원칙 — 오전에 집중 관광 후 오후는 여유로운 카페·휴식 시간으로 배치했습니다.",
-    "완충일(Buffer Day) — 3~4일마다 하루는 무일정 휴식일로 두어 체력을 안배했습니다.",
-    "사전 패스트트랙 — 바티칸, 최후의 만찬 등 박물관·유적지는 대기 시간을 배제하도록 사전예약을 전제로 짰습니다.",
-    "이동 수단은 고속열차 1등석과 FSC(풀서비스) 항공 중심으로, 편안하고 여유 있는 이동을 우선했습니다.",
+    "중요한 결론 — 겨울 바다 운항 위험을 줄이기 위해 낙소스는 제외하고 산토리니는 아테네 왕복 항공 3박으로 구성했습니다.",
+    "알가르브(라고스) 일정 이후에는 리스본에서 1박해 다음 날 로마행 항공을 안전하게 연결합니다(환승 안전일).",
+    "베네치아와 니스의 카니발 기간에는 무료취소 숙소를 가장 먼저 확보하는 것을 최우선으로 했습니다.",
+    "숙박 및 동선 관리 — 거점 도시 장기 연박으로 잦은 짐 싸기와 이동 스트레스를 최소화했습니다(도시당 최소 3박 중심).",
+    "평지 및 엘리베이터 필수 — 계단과 돌바닥을 피하고 대로변·역 인근 호텔을 선정했습니다.",
+    "체력 안배 — 하루 보행량은 대체로 4~7km 안에서 조절하고, 6~7일마다 회복일을 두었습니다. 이동일에는 별도의 유료 관광을 넣지 않았습니다.",
+    "사전 패스트트랙 — 바티칸·콜로세움·우피치·루브르 등은 시간 지정 입장을 공식 사이트에서만 구매하도록 안내했습니다.",
   ];
   document.getElementById("principleList").innerHTML = principles.map(p => `<li>${p}</li>`).join("");
 
@@ -289,7 +289,7 @@ function initMapIfNeeded() {
   });
 
   // ---- 당일투어 등 보조 지점(도시 허브가 아닌 웨이포인트)에 작은 점 마커 ----
-  const hubIds = new Set(["lisbon", "porto", "roma", "firenze", "venezia", "athens", "santorini", "chania", "paris", "nice", "sorrento", "milano"]);
+  const hubIds = new Set(["lisbon", "porto", "lagos", "roma", "firenze", "venezia", "athens", "santorini", "nice", "avignon", "lyon", "paris", "napoli", "milano"]);
   const shownWaypoints = new Set();
   const waypointInfoWindow = new google.maps.InfoWindow();
   Object.keys(WAYPOINT_LABELS).forEach(id => {
@@ -542,6 +542,28 @@ function renderChecklist() {
   });
 }
 
+// ---------------- Accommodations table ----------------
+function renderAccommodations() {
+  const el = document.getElementById("accommodationsTable");
+  if (!el) return;
+  const rows = ACCOMMODATIONS.map(a => `
+    <tr>
+      <td>${a.country}</td>
+      <td>${a.city}</td>
+      <td>${a.checkin}~${a.checkout}</td>
+      <td class="amt">${a.nights}박</td>
+      <td>${a.area}</td>
+      <td class="amt">€${a.eur.toLocaleString("en-US")}</td>
+    </tr>
+  `).join("");
+  el.innerHTML = `
+    <table class="budget-table">
+      <thead><tr><th>국가</th><th>도시</th><th>체크인~아웃</th><th>박</th><th>권장 지역</th><th>1박예산</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
 // ---------------- Address book ----------------
 function renderAddresses() {
   const el = document.getElementById("addressList");
@@ -589,6 +611,7 @@ function boot() {
   renderBudget();
   renderChecklist();
   renderAddresses();
+  renderAccommodations();
   initSyncBar();
   updateHeaderProgress();
   loadGoogleMaps();
