@@ -56,37 +56,38 @@ button {
 .app-header {
   background: linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%);
   color: var(--ivory);
-  padding: 18px 20px 14px;
+  padding: 20px 20px 16px;
+  text-align: center;
 }
 
 .app-header .eyebrow {
   font-family: var(--sans);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   color: var(--gold);
-  margin: 0 0 6px;
+  margin: 0 0 8px;
 }
 
 .app-header h1 {
   font-family: var(--serif);
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 700;
-  margin: 0 0 4px;
-  line-height: 1.35;
+  margin: 0 0 6px;
+  line-height: 1.4;
   word-break: keep-all;
   overflow-wrap: break-word;
 }
 
 .app-header .sub {
-  font-size: 14px;
+  font-size: 13px;
   color: #C3CBDA;
   margin: 0;
   line-height: 1.5;
 }
 
 .app-header .progress {
-  margin-top: 14px;
+  margin-top: 16px;
   display: flex;
   align-items: center;
   gap: 10px;
