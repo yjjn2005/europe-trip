@@ -180,7 +180,7 @@ function renderOverview() {
     const tipEntry = REGION_TIPS.find(t => t.region === r.region);
     return `
     <div class="region-block">
-      <div class="region-head"><span>${r.region}</span><span class="range">${r.range}</span></div>
+      <div class="region-head"><span class="region-name">${r.region}</span><span class="range">${r.range}</span></div>
       ${r.cities.map(c => `
         <div class="city-card">
           <div class="city-name">${c.name}</div>
