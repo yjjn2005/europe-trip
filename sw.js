@@ -1,4 +1,4 @@
-const CACHE = "europe-trip-v1";
+const CACHE = "europe-trip-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -25,17 +25,24 @@ self.addEventListener("activate", event => {
   );
 });
 
+// Network-first for the app shell so deployed updates are picked up on the
+// very next load (falls back to cache only when offline). This avoids the
+// classic PWA bug where a cache-first strategy serves stale files forever.
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
-  // Never cache API calls or Google Maps
+
+  // Never intercept API calls or Google Maps — always go straight to network.
   if (url.hostname.includes("workers.dev") || url.hostname.includes("googleapis.com") || url.hostname.includes("gstatic.com")) {
     return;
   }
+
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(res => {
-      const resClone = res.clone();
-      caches.open(CACHE).then(cache => cache.put(event.request, resClone));
-      return res;
-    }).catch(() => cached))
+    fetch(event.request)
+      .then(res => {
+        const resClone = res.clone();
+        caches.open(CACHE).then(cache => cache.put(event.request, resClone));
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
