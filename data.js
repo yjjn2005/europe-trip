@@ -127,6 +127,15 @@ const WAYPOINT_LABELS = {
   burano: "부라노", murano: "무라노", tivoli: "티볼리", ostia: "오스티아 안티카",
 };
 
+// 지도 탭의 "지역별 상세 보기" 버튼에 쓰이는 그룹 (허브 도시 + 당일투어 지점 id)
+const REGION_MAP_GROUPS = [
+  { label: "포르투갈", ids: ["lisbon", "porto", "sintra", "cascais", "douro"] },
+  { label: "이탈리아·시칠리아", ids: ["palermo", "taormina", "siracusa", "monreale", "etna", "catania", "noto"] },
+  { label: "그리스", ids: ["athens", "nafplio", "delphi", "sounion", "mycenae", "epidaurus"] },
+  { label: "프랑스", ids: ["nice", "aix", "eze", "monaco", "antibes", "arles", "lesbaux", "pontdugard"] },
+  { label: "이탈리아·중북부", ids: ["firenze", "venezia", "roma", "pisa", "siena", "burano", "murano", "tivoli", "ostia"] },
+];
+
 // 날짜별 그날의 이동 경로(웨이포인트 id 순서). 2개 이상이면 당일(오전~저녁) 붉은선,
 // 전날 마지막 지점 → 다음날 첫 지점은 파란선(일별 이동)으로 app.js가 자동으로 그립니다.
 const DAY_ROUTES = {

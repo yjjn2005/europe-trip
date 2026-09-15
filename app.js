@@ -349,6 +349,28 @@ function initMapIfNeeded() {
   });
 
   mapInstance.fitBounds(bounds, 40);
+  const overallBounds = bounds;
+
+  // ---- 지역별 상세 보기 버튼: 눌리면 해당 지역으로 확대 ----
+  const regionTabsEl = document.getElementById("mapRegionTabs");
+  const regionOptions = [{ label: "전체", ids: null }, ...REGION_MAP_GROUPS];
+  regionTabsEl.innerHTML = regionOptions.map((g, i) => `<button data-ri="${i}" class="${i === 0 ? "active" : ""}">${g.label}</button>`).join("");
+  regionTabsEl.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      regionTabsEl.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
+      const group = regionOptions[Number(btn.dataset.ri)];
+      if (!group.ids) {
+        mapInstance.fitBounds(overallBounds, 40);
+        return;
+      }
+      const b2 = new google.maps.LatLngBounds();
+      group.ids.forEach(id => {
+        const p = toLatLng(id);
+        if (p) b2.extend(p);
+      });
+      mapInstance.fitBounds(b2, 48);
+    });
+  });
 
   document.getElementById("mapLegend").innerHTML = `
     <div class="legend-item"><span class="swatch navy"></span>일별 이동 — 전날 마지막 지점 → 다음날 첫 지점 (파란선)</div>
