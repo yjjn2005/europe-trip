@@ -1,0 +1,14 @@
+{
+  "name": "부부 은퇴여행 — 서유럽·지중해 2개월",
+  "short_name": "은퇴여행",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0F2544",
+  "theme_color": "#0F2544",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
