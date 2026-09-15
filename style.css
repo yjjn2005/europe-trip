@@ -355,12 +355,13 @@ button {
 .stop-row:hover { background: var(--ivory-dim); }
 
 .stop-row .num {
-  flex: 0 0 22px;
+  flex: 0 0 26px;
   height: 22px;
-  border-radius: 50%;
+  padding: 0 2px;
+  border-radius: 11px;
   background: var(--navy);
   color: var(--gold);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;

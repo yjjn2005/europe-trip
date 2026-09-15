@@ -203,6 +203,28 @@ function renderOverview() {
 }
 
 // ---------------- Map ----------------
+// Group consecutive same-nation stops together and label them
+// "<group><letter>" (e.g. 1a, 1b, 2a...) so intra-country legs read as a
+// lettered sequence within each numbered country visit.
+function computeStopLabels() {
+  const labels = [];
+  let group = 0;
+  let prevNation = null;
+  let letterIdx = 0;
+  STOPS.forEach(s => {
+    if (s.nation !== prevNation) {
+      group += 1;
+      letterIdx = 0;
+      prevNation = s.nation;
+    } else {
+      letterIdx += 1;
+    }
+    const letter = String.fromCharCode(97 + letterIdx); // a, b, c...
+    labels.push(`${group}${letter}`);
+  });
+  return labels;
+}
+
 let mapInstance = null;
 let mapMarkers = [];
 let mapInited = false;
@@ -259,15 +281,16 @@ function initMapIfNeeded() {
 
   const bounds = new google.maps.LatLngBounds();
   const infoWindow = new google.maps.InfoWindow();
+  const stopLabels = computeStopLabels();
 
   STOPS.forEach((s, i) => {
     const marker = new google.maps.Marker({
       position: { lat: s.lat, lng: s.lng },
       map: mapInstance,
-      label: { text: String(i + 1), color: "#B7975C", fontSize: "11px", fontWeight: "700" },
+      label: { text: stopLabels[i], color: "#B7975C", fontSize: "10.5px", fontWeight: "700" },
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
-        scale: 12,
+        scale: 13,
         fillColor: "#0F2544",
         fillOpacity: 1,
         strokeColor: "#B7975C",
@@ -278,7 +301,7 @@ function initMapIfNeeded() {
     marker.addListener("click", () => {
       infoWindow.setContent(`
         <div style="font-family:'Noto Sans KR',sans-serif;min-width:170px;">
-          <div style="font-weight:700;color:#0F2544;font-size:14px;margin-bottom:2px;">${i + 1}. ${s.name}</div>
+          <div style="font-weight:700;color:#0F2544;font-size:14px;margin-bottom:2px;">${stopLabels[i]}. ${s.name}</div>
           <div style="font-size:11.5px;color:#6B6458;margin-bottom:5px;">${s.country} · ${s.range}</div>
           <div style="font-size:12px;color:#252220;">${s.note}</div>
         </div>
@@ -292,13 +315,13 @@ function initMapIfNeeded() {
   mapInstance.fitBounds(bounds, 40);
 
   document.getElementById("mapLegend").innerHTML = `
-    <div class="legend-item"><span class="swatch gold"></span>국가 간 이동 (${interSegments.length}구간)</div>
-    <div class="legend-item"><span class="swatch navy-dash"></span>국가 내 이동 (${intraSegments.length}구간)</div>
+    <div class="legend-item"><span class="swatch gold"></span>국가 간 이동 — 그룹 번호가 바뀜 (${interSegments.length}구간)</div>
+    <div class="legend-item"><span class="swatch navy-dash"></span>국가 내 이동 — 같은 그룹 안 a→b→c (${intraSegments.length}구간)</div>
   `;
 
   document.getElementById("stopList").innerHTML = STOPS.map((s, i) => `
     <div class="stop-row" data-idx="${i}">
-      <div class="num">${i + 1}</div>
+      <div class="num">${stopLabels[i]}</div>
       <div class="info">
         <div class="name">${s.name}</div>
         <div class="range">${s.country} · ${s.range}</div>
