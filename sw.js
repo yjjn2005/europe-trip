@@ -1,4 +1,4 @@
-const CACHE = "europe-trip-v2";
+const CACHE = "europe-trip-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -37,7 +37,7 @@ self.addEventListener("fetch", event => {
   }
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-store" })
       .then(res => {
         const resClone = res.clone();
         caches.open(CACHE).then(cache => cache.put(event.request, resClone));

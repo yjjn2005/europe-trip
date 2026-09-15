@@ -255,9 +255,9 @@ function initMapIfNeeded() {
     routeLines.push(new google.maps.Polyline({
       path: seg,
       geodesic: true,
-      strokeColor: "#B7975C",
+      strokeColor: "#F2B807",
       strokeOpacity: 0.95,
-      strokeWeight: 4,
+      strokeWeight: 5,
       map: mapInstance,
       zIndex: 2,
     }));
@@ -266,9 +266,9 @@ function initMapIfNeeded() {
     routeLines.push(new google.maps.Polyline({
       path: seg,
       geodesic: true,
-      strokeColor: "#0F2544",
+      strokeColor: "#2260D8",
       strokeOpacity: 0.85,
-      strokeWeight: 3,
+      strokeWeight: 2,
       map: mapInstance,
       zIndex: 1,
     }));
@@ -310,8 +310,8 @@ function initMapIfNeeded() {
   mapInstance.fitBounds(bounds, 40);
 
   document.getElementById("mapLegend").innerHTML = `
-    <div class="legend-item"><span class="swatch gold"></span>국가 간 이동 — 그룹 번호가 바뀜 (${interSegments.length}구간)</div>
-    <div class="legend-item"><span class="swatch navy"></span>국가 내 이동 — 같은 그룹 안 a→b→c (${intraSegments.length}구간)</div>
+    <div class="legend-item"><span class="swatch gold"></span>국가 간 이동 — 굵은 노란선, 그룹 번호가 바뀜 (${interSegments.length}구간)</div>
+    <div class="legend-item"><span class="swatch navy"></span>국가 내 이동 — 얇은 파란선, 같은 그룹 안 a→b→c (${intraSegments.length}구간)</div>
   `;
 
   document.getElementById("stopList").innerHTML = STOPS.map((s, i) => `

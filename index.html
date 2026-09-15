@@ -16,16 +16,27 @@
 </head>
 <body>
 
-<header class="app-header">
-  <p class="eyebrow">PRIVATE TRAVEL DOSSIER</p>
-  <h1 id="tripTitle">부부 은퇴여행 · 서유럽·지중해 2개월</h1>
-  <p class="sub">2027.01.10 인천 출발 — 2027.03.12 인천 도착 · 부부 2인</p>
-  <div class="progress">
-    <span id="dDayLabel">D-day</span>
-    <div class="bar"><span id="progressBar" style="width:0%"></span></div>
-    <span id="progressLabel">0 / 62일 완료</span>
-  </div>
-</header>
+<div class="app-top">
+  <header class="app-header">
+    <p class="eyebrow">PRIVATE TRAVEL DOSSIER</p>
+    <h1 id="tripTitle">부부 은퇴여행 · 서유럽·지중해 2개월</h1>
+    <p class="sub">2027.01.10 인천 출발 — 2027.03.12 인천 도착 · 부부 2인</p>
+    <div class="progress">
+      <span id="dDayLabel">D-day</span>
+      <div class="bar"><span id="progressBar" style="width:0%"></span></div>
+      <span id="progressLabel">0 / 62일 완료</span>
+    </div>
+  </header>
+
+  <nav class="tabbar">
+    <button data-view="view-overview" class="active"><span class="ic">📖</span>개요</button>
+    <button data-view="view-map"><span class="ic">🗺️</span>지도</button>
+    <button data-view="view-daily"><span class="ic">📅</span>일정</button>
+    <button data-view="view-budget"><span class="ic">💰</span>예산</button>
+    <button data-view="view-checklist"><span class="ic">✅</span>체크</button>
+    <button data-view="view-address"><span class="ic">📍</span>주소</button>
+  </nav>
+</div>
 
 <div class="app-shell">
 
@@ -44,7 +55,7 @@
   <!-- 지도 -->
   <section id="view-map" class="view">
     <h2 class="section-title">이동경로 지도</h2>
-    <p class="section-note">번호는 방문 순서입니다. 금색은 국가 간 이동, 남색 점선은 국가 내 이동입니다.</p>
+    <p class="section-note">번호는 방문 순서입니다. 굵은 노란선은 국가 간 이동, 얇은 파란선은 국가 내 이동입니다.</p>
     <div id="map"></div>
     <div class="map-legend-static" id="mapLegend"></div>
     <div class="stop-list" id="stopList"></div>
@@ -89,15 +100,6 @@
   </section>
 
 </div>
-
-<nav class="tabbar">
-  <button data-view="view-overview" class="active"><span class="ic">📖</span>개요</button>
-  <button data-view="view-map"><span class="ic">🗺️</span>지도</button>
-  <button data-view="view-daily"><span class="ic">📅</span>일정</button>
-  <button data-view="view-budget"><span class="ic">💰</span>예산</button>
-  <button data-view="view-checklist"><span class="ic">✅</span>체크</button>
-  <button data-view="view-address"><span class="ic">📍</span>주소</button>
-</nav>
 
 <script src="./config.js"></script>
 <script src="./data.js"></script>
