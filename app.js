@@ -209,6 +209,32 @@ function computeStopLabels() {
   return labels;
 }
 
+// ---------------- Map fullscreen toggle ----------------
+function initMapFullscreen() {
+  const btn = document.getElementById("mapFullscreenBtn");
+  const wrap = document.getElementById("mapWrap");
+  if (!btn || !wrap) return;
+
+  function setFullscreen(on) {
+    wrap.classList.toggle("fullscreen", on);
+    document.body.classList.toggle("map-fullscreen-active", on);
+    btn.innerHTML = on ? '<span class="ic">✕</span>' : '<span class="ic">⛶</span>';
+    btn.setAttribute("aria-label", on ? "전체화면 닫기" : "지도 전체화면");
+    if (window.google && window.google.maps && mapInstance) {
+      const center = mapInstance.getCenter();
+      setTimeout(() => {
+        google.maps.event.trigger(mapInstance, "resize");
+        if (center) mapInstance.setCenter(center);
+      }, 60);
+    }
+  }
+
+  btn.addEventListener("click", () => setFullscreen(!wrap.classList.contains("fullscreen")));
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && wrap.classList.contains("fullscreen")) setFullscreen(false);
+  });
+}
+
 let mapInstance = null;
 let mapMarkers = [];
 let mapInited = false;
@@ -602,6 +628,7 @@ function boot() {
   initSyncBar();
   updateHeaderProgress();
   loadGoogleMaps();
+  initMapFullscreen();
   if (state.pin) pullSync(false);
 
   if ("serviceWorker" in navigator && navigator.serviceWorker) {
