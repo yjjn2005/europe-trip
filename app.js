@@ -209,32 +209,6 @@ function computeStopLabels() {
   return labels;
 }
 
-// ---------------- Map fullscreen toggle ----------------
-function initMapFullscreen() {
-  const btn = document.getElementById("mapFullscreenBtn");
-  const wrap = document.getElementById("mapWrap");
-  if (!btn || !wrap) return;
-
-  function setFullscreen(on) {
-    wrap.classList.toggle("fullscreen", on);
-    document.body.classList.toggle("map-fullscreen-active", on);
-    btn.innerHTML = on ? '<span class="ic">✕</span>' : '<span class="ic">⛶</span>';
-    btn.setAttribute("aria-label", on ? "전체화면 닫기" : "지도 전체화면");
-    if (window.google && window.google.maps && mapInstance) {
-      const center = mapInstance.getCenter();
-      setTimeout(() => {
-        google.maps.event.trigger(mapInstance, "resize");
-        if (center) mapInstance.setCenter(center);
-      }, 60);
-    }
-  }
-
-  btn.addEventListener("click", () => setFullscreen(!wrap.classList.contains("fullscreen")));
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && wrap.classList.contains("fullscreen")) setFullscreen(false);
-  });
-}
-
 let mapInstance = null;
 let mapMarkers = [];
 let mapInited = false;
@@ -246,9 +220,10 @@ function initMapIfNeeded() {
     zoom: 4,
     center: { lat: 41.5, lng: 10.5 },
     mapId: "EUROPE_TRIP_MAP",
+    gestureHandling: "greedy",
     mapTypeControl: false,
     streetViewControl: false,
-    fullscreenControl: false,
+    fullscreenControl: true,
   });
 
   // ---- 일자별 경로: 당일(오전~저녁) 이동은 빨간선, 하루→다음날 이동은 파란선 ----
@@ -274,6 +249,7 @@ function initMapIfNeeded() {
   });
 
   const routeLines = [];
+  const arrowIcon = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 2.6, strokeColor: "#2260D8", fillColor: "#2260D8", fillOpacity: 1 };
   betweenDaySegs.forEach(seg => {
     routeLines.push(new google.maps.Polyline({
       path: seg,
@@ -281,6 +257,7 @@ function initMapIfNeeded() {
       strokeColor: "#2260D8",
       strokeOpacity: 0.8,
       strokeWeight: 2,
+      icons: [{ icon: arrowIcon, offset: "50%" }],
       map: mapInstance,
       zIndex: 1,
     }));
@@ -628,7 +605,6 @@ function boot() {
   initSyncBar();
   updateHeaderProgress();
   loadGoogleMaps();
-  initMapFullscreen();
   if (state.pin) pullSync(false);
 
   if ("serviceWorker" in navigator && navigator.serviceWorker) {
