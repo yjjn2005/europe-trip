@@ -190,6 +190,37 @@ function renderOverview() {
 let mapInstance = null;
 let mapMarkers = [];
 let mapInited = false;
+let mapIsReady = false;
+let mapReadyCallbacks = [];
+let markersById = {};
+
+function whenMapReady(cb) {
+  if (mapIsReady) { cb(); return; }
+  mapReadyCallbacks.push(cb);
+  initMapIfNeeded();
+}
+
+function focusDay(dayNo) {
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-map"));
+  document.querySelectorAll(".tabbar button").forEach(b => b.classList.toggle("active", b.dataset.view === "view-map"));
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+
+  whenMapReady(() => {
+    const day = DAILY.find(d => d.no === dayNo);
+    if (!day || !day.route || !day.route.length) return;
+    const b = new google.maps.LatLngBounds();
+    day.route.forEach(id => {
+      const wp = WAYPOINTS[id];
+      if (wp) b.extend({ lat: wp[0], lng: wp[1] });
+    });
+    mapInstance.fitBounds(b, 60);
+    setTimeout(() => { if (mapInstance.getZoom() > 14) mapInstance.setZoom(14); }, 300);
+    setTimeout(() => {
+      const marker = markersById[day.route[0]];
+      if (marker) google.maps.event.trigger(marker, "click");
+    }, 450);
+  });
+}
 
 const CAT_COLOR = { H: "#0F2544", P: "#5B6B4F", T: "#7A7A72", A: "#C99A3E" };
 const CAT_LABEL = { H: "호텔(숙박 거점)", P: "여행지", T: "대중교통·경유지", A: "공항" };
@@ -264,10 +295,8 @@ async function initMapIfNeeded() {
   const bounds = new google.maps.LatLngBounds();
   const infoWindow = new google.maps.InfoWindow();
   const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-  const hubIds = new Set(STOPS.map((s, i) => {
-    const match = Object.entries(WAYPOINTS).find(([id, c]) => c[0] === s.lat && c[1] === s.lng);
-    return match ? match[0] : null;
-  }).filter(Boolean));
+  const coordToId = new Map(Object.entries(WAYPOINTS).map(([id, c]) => [`${c[0]},${c[1]}`, id]));
+  const hubIds = new Set(STOPS.map(s => coordToId.get(`${s.lat},${s.lng}`)).filter(Boolean));
 
   STOPS.forEach(s => {
     const pin = flagPinEl("H", CAT_COLOR.H, s.name);
@@ -283,6 +312,8 @@ async function initMapIfNeeded() {
       infoWindow.open({ anchor: marker, map: mapInstance });
     });
     mapMarkers.push(marker);
+    const hubId = coordToId.get(`${s.lat},${s.lng}`);
+    if (hubId) markersById[hubId] = marker;
     bounds.extend({ lat: s.lat, lng: s.lng });
   });
 
@@ -301,6 +332,7 @@ async function initMapIfNeeded() {
         </div>`);
       infoWindow.open({ anchor: marker, map: mapInstance });
     });
+    markersById[id] = marker;
   });
 
   // 출발·도착 라벨 (전체 경로의 첫/마지막 지점)
@@ -361,6 +393,10 @@ async function initMapIfNeeded() {
       google.maps.event.trigger(mapMarkers[idx], "click");
     });
   });
+
+  mapIsReady = true;
+  mapReadyCallbacks.forEach(cb => cb());
+  mapReadyCallbacks = [];
 }
 
 function loadGoogleMaps() {
@@ -410,9 +446,12 @@ function renderDaily() {
             <div class="day-date">${dt.getMonth() + 1}/${dt.getDate()} (${wd}) <span style="font-weight:400;color:#6B6458;font-size:11px;">No.${d.no}</span></div>
             <div class="day-city">${d.city}${d.stay !== "-" ? " · " + d.stay : ""}</div>
           </div>
-          <label class="day-check">
-            <input type="checkbox" data-no="${d.no}" ${done ? "checked" : ""} aria-label="완료 표시" />
-          </label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="day-map-btn" data-mapday="${d.no}" aria-label="지도에서 보기" title="지도에서 보기">🗺</button>
+            <label class="day-check">
+              <input type="checkbox" data-no="${d.no}" ${done ? "checked" : ""} aria-label="완료 표시" />
+            </label>
+          </div>
         </div>
         <div class="day-body">
           <div class="slot"><span class="label">오전</span><span>${d.am}</span></div>
@@ -423,6 +462,10 @@ function renderDaily() {
       </div>
     `;
   }).join("");
+
+  list.querySelectorAll('.day-map-btn').forEach(btn => {
+    btn.addEventListener("click", () => focusDay(Number(btn.dataset.mapday)));
+  });
 
   list.querySelectorAll('input[type=checkbox]').forEach(cb => {
     cb.addEventListener("change", () => {

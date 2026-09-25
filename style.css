@@ -519,6 +519,25 @@ button {
   accent-color: var(--navy);
 }
 
+.day-map-btn {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: var(--ivory-dim);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, background 0.14s ease;
+}
+
+.day-map-btn:active {
+  transform: scale(0.9);
+  background: var(--gold-soft);
+}
+
 .day-card .day-body {
   margin-top: 12px;
   font-size: 14px;
