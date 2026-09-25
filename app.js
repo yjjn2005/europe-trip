@@ -187,31 +187,28 @@ function renderOverview() {
 }
 
 // ---------------- Map ----------------
-// Group consecutive same-nation stops together and label them
-// "<group><letter>" (e.g. 1a, 1b, 2a...) so intra-country legs read as a
-// lettered sequence within each numbered country visit.
-function computeStopLabels() {
-  const labels = [];
-  let group = 0;
-  let prevNation = null;
-  let letterIdx = 0;
-  STOPS.forEach(s => {
-    if (s.nation !== prevNation) {
-      group += 1;
-      letterIdx = 0;
-      prevNation = s.nation;
-    } else {
-      letterIdx += 1;
-    }
-    const letter = String.fromCharCode(97 + letterIdx); // a, b, c...
-    labels.push(`${group}${letter}`);
-  });
-  return labels;
-}
-
 let mapInstance = null;
 let mapMarkers = [];
 let mapInited = false;
+
+const CAT_COLOR = { H: "#0F2544", P: "#5B6B4F", T: "#7A7A72", A: "#C99A3E" };
+const CAT_LABEL = { H: "호텔(숙박 거점)", P: "여행지", T: "대중교통·경유지", A: "공항" };
+
+function flagPinEl(letter, color, name) {
+  const pin = document.createElement("div");
+  pin.style.cssText = "display:flex;align-items:flex-end;gap:4px;cursor:pointer;";
+  pin.innerHTML = `
+    <svg width="26" height="33" viewBox="0 0 30 38" style="flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));">
+      <line x1="4" y1="6" x2="4" y2="36" stroke="#3a3a34" stroke-width="2.2"/>
+      <circle cx="4" cy="36.5" r="2.2" fill="#3a3a34"/>
+      <path d="M4 4 L27 4 L20 12 L27 20 L4 20 Z" fill="${color}" stroke="#fff" stroke-width="1.6"/>
+      <text x="14" y="16" font-size="11" font-weight="700" fill="#fff" font-family="'Noto Sans KR',sans-serif" text-anchor="middle">${letter}</text>
+    </svg>
+    <div style="background:rgba(255,252,246,0.96);border:1px solid ${color};border-radius:7px;
+      padding:2px 7px;font-size:11px;font-weight:700;color:#20242B;white-space:nowrap;
+      box-shadow:0 1px 4px rgba(0,0,0,.18);font-family:'Noto Sans KR',sans-serif;margin-bottom:7px;">${name}</div>`;
+  return pin;
+}
 
 async function initMapIfNeeded() {
   if (mapInited || !window.google || !window.google.maps) return;
@@ -226,139 +223,98 @@ async function initMapIfNeeded() {
     fullscreenControl: true,
   });
 
-  // ---- 일자별 경로: 당일(오전~저녁) 이동은 빨간선, 하루→다음날 이동은 파란선 ----
   const toLatLng = id => {
     const wp = WAYPOINTS[id];
     return wp ? { lat: wp[0], lng: wp[1] } : null;
   };
+  const nationOf = id => WAYPOINT_NATION[id] || null;
 
-  const withinDaySegs = [];   // 빨간선: 같은 날 안에서의 이동
-  const betweenDaySegs = [];  // 파란선: 전날 마지막 지점 → 다음날 첫 지점
-  let prevDayLastPoint = null;
-
+  // ---- 일자별 경로: 국가 간 이동은 빨간 화살표, 국내 이동은 파란선 ----
+  const allSegs = [];
+  let prevId = null;
   DAILY.forEach(day => {
-    const pts = (day.route || []).map(toLatLng).filter(Boolean);
-    if (pts.length === 0) return;
-    for (let i = 0; i < pts.length - 1; i++) {
-      withinDaySegs.push([pts[i], pts[i + 1]]);
-    }
-    if (prevDayLastPoint) {
-      betweenDaySegs.push([prevDayLastPoint, pts[0]]);
-    }
-    prevDayLastPoint = pts[pts.length - 1];
+    const ids = (day.route || []).filter(id => WAYPOINTS[id]);
+    if (!ids.length) return;
+    if (prevId) allSegs.push({ fromId: prevId, toId: ids[0] });
+    for (let i = 0; i < ids.length - 1; i++) allSegs.push({ fromId: ids[i], toId: ids[i + 1] });
+    prevId = ids[ids.length - 1];
   });
 
   const routeLines = [];
-  const arrowIcon = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 3, strokeColor: "#2260D8", fillColor: "#2260D8", fillOpacity: 1 };
-  betweenDaySegs.forEach(seg => {
+  const arrowIcon = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 3, strokeColor: "#D6362A", fillColor: "#D6362A", fillOpacity: 1 };
+  let interCount = 0, intraCount = 0;
+  allSegs.forEach(seg => {
+    const from = toLatLng(seg.fromId), to = toLatLng(seg.toId);
+    if (!from || !to) return;
+    const isInter = nationOf(seg.fromId) && nationOf(seg.toId) && nationOf(seg.fromId) !== nationOf(seg.toId);
+    if (isInter) interCount++; else intraCount++;
     routeLines.push(new google.maps.Polyline({
-      path: seg,
+      path: [from, to],
       geodesic: true,
-      strokeColor: "#2260D8",
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
-      icons: [{ icon: arrowIcon, offset: "0%", repeat: "90px" }],
+      strokeColor: isInter ? "#D6362A" : "#2260D8",
+      strokeOpacity: isInter ? 0.9 : 0.75,
+      strokeWeight: isInter ? 3 : 2,
+      icons: isInter ? [{ icon: arrowIcon, offset: "0%", repeat: "90px" }] : [],
       map: mapInstance,
-      zIndex: 1,
-    }));
-  });
-  withinDaySegs.forEach(seg => {
-    routeLines.push(new google.maps.Polyline({
-      path: seg,
-      geodesic: true,
-      strokeColor: "#D6362A",
-      strokeOpacity: 0.9,
-      strokeWeight: 2,
-      map: mapInstance,
-      zIndex: 2,
+      zIndex: isInter ? 2 : 1,
     }));
   });
 
-  // ---- 당일투어 등 보조 지점(도시 허브가 아닌 웨이포인트)에 작은 점 마커 ----
-  const hubIds = new Set(["lisbon", "porto", "lagos", "roma", "firenze", "venezia", "athens", "santorini", "nice", "avignon", "lyon", "paris", "napoli", "milano"]);
-  const shownWaypoints = new Set();
-  const waypointInfoWindow = new google.maps.InfoWindow();
-  Object.keys(WAYPOINT_LABELS).forEach(id => {
-    if (hubIds.has(id) || shownWaypoints.has(id) || !WAYPOINTS[id]) return;
-    shownWaypoints.add(id);
-    const pos = toLatLng(id);
-    const dot = new google.maps.Marker({
-      position: pos,
-      map: mapInstance,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 5,
-        fillColor: "#D6362A",
-        fillOpacity: 1,
-        strokeColor: "#ffffff",
-        strokeWeight: 1.5,
-      },
-      title: WAYPOINT_LABELS[id],
-      zIndex: 3,
-    });
-    dot.addListener("click", () => {
-      waypointInfoWindow.setContent(`<div style="font-family:'Noto Sans KR',sans-serif;font-size:12.5px;font-weight:700;color:#0F2544;">${WAYPOINT_LABELS[id]}</div>`);
-      waypointInfoWindow.open(mapInstance, dot);
-    });
-  });
-
+  // ---- 마커: 카테고리(H 호텔 / P 여행지 / T 대중교통 / A 공항)별 깃발 핀 ----
   const bounds = new google.maps.LatLngBounds();
   const infoWindow = new google.maps.InfoWindow();
-  const stopLabels = computeStopLabels();
   const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+  const hubIds = new Set(STOPS.map((s, i) => {
+    const match = Object.entries(WAYPOINTS).find(([id, c]) => c[0] === s.lat && c[1] === s.lng);
+    return match ? match[0] : null;
+  }).filter(Boolean));
 
-  STOPS.forEach((s, i) => {
-    const pin = document.createElement("div");
-    pin.style.cssText = "display:flex;align-items:flex-end;gap:4px;cursor:pointer;";
-    pin.innerHTML = `
-      <svg width="30" height="38" viewBox="0 0 30 38" style="flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));">
-        <line x1="4" y1="6" x2="4" y2="36" stroke="#3a3a34" stroke-width="2.2"/>
-        <circle cx="4" cy="36.5" r="2.2" fill="#3a3a34"/>
-        <path d="M4 4 L27 4 L20 12 L27 20 L4 20 Z" fill="#0F2544" stroke="#B7975C" stroke-width="1.6"/>
-        <text x="14" y="16" font-size="11" font-weight="700" fill="#B7975C" font-family="'Noto Sans KR',sans-serif" text-anchor="middle">${stopLabels[i]}</text>
-      </svg>
-      <div style="background:rgba(255,252,246,0.96);border:1px solid #B7975C;border-radius:7px;
-        padding:3px 8px;font-size:11.5px;font-weight:700;color:#20242B;white-space:nowrap;
-        box-shadow:0 1px 4px rgba(0,0,0,.18);font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">${s.name}</div>`;
-
-    const marker = new AdvancedMarkerElement({
-      position: { lat: s.lat, lng: s.lng },
-      map: mapInstance,
-      title: s.name,
-      content: pin,
-      zIndex: 100 + i,
-    });
+  STOPS.forEach(s => {
+    const pin = flagPinEl("H", CAT_COLOR.H, s.name);
+    const marker = new AdvancedMarkerElement({ position: { lat: s.lat, lng: s.lng }, map: mapInstance, title: s.name, content: pin, zIndex: 100 });
     marker.addListener("click", () => {
       infoWindow.setContent(`
         <div style="font-family:'Noto Sans KR',sans-serif;min-width:190px;">
-          <div style="font-size:10.5px;color:#B7975C;font-weight:700;margin-bottom:2px;">${stopLabels[i]} · 방문 도시</div>
+          <div style="font-size:10.5px;color:${CAT_COLOR.H};font-weight:700;margin-bottom:2px;">H · ${CAT_LABEL.H}</div>
           <div style="font-weight:700;color:#0F2544;font-size:15px;margin-bottom:3px;">${s.name}</div>
           <div style="font-size:11.5px;color:#6B6458;margin-bottom:5px;">${s.country} · ${s.range}</div>
           <div style="font-size:12px;color:#252220;">${s.note}</div>
-        </div>
-      `);
+        </div>`);
       infoWindow.open({ anchor: marker, map: mapInstance });
     });
     mapMarkers.push(marker);
     bounds.extend({ lat: s.lat, lng: s.lng });
   });
 
+  Object.keys(WAYPOINT_LABELS).forEach(id => {
+    if (hubIds.has(id) || !WAYPOINTS[id]) return;
+    const cat = WAYPOINT_CATEGORY[id] || "P";
+    const color = CAT_COLOR[cat] || CAT_COLOR.P;
+    const pos = toLatLng(id);
+    const pin = flagPinEl(cat, color, WAYPOINT_LABELS[id]);
+    const marker = new AdvancedMarkerElement({ position: pos, map: mapInstance, title: WAYPOINT_LABELS[id], content: pin, zIndex: 50 });
+    marker.addListener("click", () => {
+      infoWindow.setContent(`
+        <div style="font-family:'Noto Sans KR',sans-serif;min-width:170px;">
+          <div style="font-size:10.5px;color:${color};font-weight:700;margin-bottom:2px;">${cat} · ${CAT_LABEL[cat]}</div>
+          <div style="font-weight:700;color:#0F2544;font-size:13.5px;">${WAYPOINT_LABELS[id]}</div>
+        </div>`);
+      infoWindow.open({ anchor: marker, map: mapInstance });
+    });
+  });
+
   // 출발·도착 라벨 (전체 경로의 첫/마지막 지점)
   if (STOPS.length) {
     new google.maps.Marker({
-      position: { lat: STOPS[0].lat, lng: STOPS[0].lng },
-      map: mapInstance,
+      position: { lat: STOPS[0].lat, lng: STOPS[0].lng }, map: mapInstance,
       label: { text: "출발", color: "#0F2544", fontWeight: "700", fontSize: "11px" },
-      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0.1, fillOpacity: 0, strokeOpacity: 0 },
-      zIndex: 1,
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0.1, fillOpacity: 0, strokeOpacity: 0 }, zIndex: 1,
     });
     const last = STOPS[STOPS.length - 1];
     new google.maps.Marker({
-      position: { lat: last.lat, lng: last.lng },
-      map: mapInstance,
+      position: { lat: last.lat, lng: last.lng }, map: mapInstance,
       label: { text: "도착", color: "#0F2544", fontWeight: "700", fontSize: "11px" },
-      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0.1, fillOpacity: 0, strokeOpacity: 0 },
-      zIndex: 1,
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0.1, fillOpacity: 0, strokeOpacity: 0 }, zIndex: 1,
     });
   }
 
@@ -373,27 +329,22 @@ async function initMapIfNeeded() {
     btn.addEventListener("click", () => {
       regionTabsEl.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
       const group = regionOptions[Number(btn.dataset.ri)];
-      if (!group.ids) {
-        mapInstance.fitBounds(overallBounds, 40);
-        return;
-      }
+      if (!group.ids) { mapInstance.fitBounds(overallBounds, 40); return; }
       const b2 = new google.maps.LatLngBounds();
-      group.ids.forEach(id => {
-        const p = toLatLng(id);
-        if (p) b2.extend(p);
-      });
+      group.ids.forEach(id => { const p = toLatLng(id); if (p) b2.extend(p); });
       mapInstance.fitBounds(b2, 48);
     });
   });
 
   document.getElementById("mapLegend").innerHTML = `
-    <div class="legend-item"><span class="swatch navy"></span>일별 이동 — 전날 마지막 지점 → 다음날 첫 지점 (파란선)</div>
-    <div class="legend-item"><span class="swatch red"></span>당일 동선 — 오전·오후·저녁 이동, 당일투어 왕복 (빨간선)</div>
+    <div class="legend-item"><span class="swatch red"></span>국가 간 이동 — 화살표(${interCount}구간)</div>
+    <div class="legend-item"><span class="swatch navy"></span>국내 이동(${intraCount}구간)</div>
+    ${Object.keys(CAT_COLOR).map(c => `<div class="legend-item"><span class="swatch cat" style="background:${CAT_COLOR[c]}"></span>${c} · ${CAT_LABEL[c]}</div>`).join("")}
   `;
 
   document.getElementById("stopList").innerHTML = STOPS.map((s, i) => `
     <div class="stop-row" data-idx="${i}">
-      <div class="num">${stopLabels[i]}</div>
+      <div class="num">H</div>
       <div class="info">
         <div class="name">${s.name}</div>
         <div class="range">${s.country} · ${s.range}</div>

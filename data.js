@@ -158,6 +158,7 @@ const WAYPOINTS = {
   paris: [48.8529682, 2.3499021],
   napoli: [40.8321493, 14.2501319], pompeii: [40.7512189, 14.4886761],
   milano: [45.4640976, 9.1919265],
+  lis_airport: [38.7788454, -9.1319758], mxp_airport: [45.6227139, 8.7282345],
 };
 
 // 도시 밖(당일투어) 지점만 지도에 보조 점으로 표시할 때 쓰는 표시명
@@ -169,6 +170,29 @@ const WAYPOINT_LABELS = {
   oia: "이아(Oia)", imerovigli: "이메로비글리",
   eze: "에즈", monaco: "모나코", gordes: "고르드(뤼베롱)",
   pompeii: "폼페이",
+  lis_airport: "리스본 공항(입국)", mxp_airport: "밀라노 말펜사 공항(출국)",
+};
+
+// 지도 마커 표시·경로선 국가간/국내 판정에 쓰이는 웨이포인트 id → 국가 매핑
+const WAYPOINT_NATION = {
+  lisbon: "포르투갈", porto: "포르투갈", lagos: "포르투갈", sintra: "포르투갈", cascais: "포르투갈",
+  gaia: "포르투갈", douro: "포르투갈", pontadapiedade: "포르투갈", sagres: "포르투갈",
+  roma: "이탈리아", firenze: "이탈리아", siena: "이탈리아", sangimignano: "이탈리아",
+  venezia: "이탈리아", murano: "이탈리아", napoli: "이탈리아", pompeii: "이탈리아", milano: "이탈리아",
+  athens: "그리스", sounion: "그리스", nafplio: "그리스", delphi: "그리스",
+  santorini: "그리스", oia: "그리스", imerovigli: "그리스",
+  nice: "프랑스", eze: "프랑스", monaco: "프랑스", avignon: "프랑스", gordes: "프랑스",
+  lyon: "프랑스", paris: "프랑스",
+  lis_airport: "포르투갈", mxp_airport: "이탈리아",
+};
+
+// 지도 마커 분류: H=호텔(숙박 거점), P=여행지(관광명소), T=대중교통(경유지), A=공항
+// 식당(E)은 원본 일정표에 특정 식당명·위치가 없어 이번에는 표시하지 않았습니다.
+const WAYPOINT_CATEGORY = {
+  sintra: "P", cascais: "P", gaia: "P", douro: "P", pontadapiedade: "P", sagres: "P",
+  siena: "P", sangimignano: "P", murano: "P", sounion: "P", nafplio: "P", delphi: "P",
+  oia: "P", imerovigli: "P", eze: "P", monaco: "P", gordes: "P", pompeii: "P",
+  lis_airport: "A", mxp_airport: "A",
 };
 
 // 지도 탭의 "지역별 상세 보기" 버튼에 쓰이는 그룹 (허브 도시 + 당일투어 지점 id)
