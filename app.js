@@ -213,13 +213,13 @@ let mapInstance = null;
 let mapMarkers = [];
 let mapInited = false;
 
-function initMapIfNeeded() {
+async function initMapIfNeeded() {
   if (mapInited || !window.google || !window.google.maps) return;
   mapInited = true;
   mapInstance = new google.maps.Map(document.getElementById("map"), {
     zoom: 4,
     center: { lat: 41.5, lng: 10.5 },
-    mapId: "EUROPE_TRIP_MAP",
+    mapId: "DEMO_MAP_ID",
     gestureHandling: "greedy",
     mapTypeControl: false,
     streetViewControl: false,
@@ -249,7 +249,7 @@ function initMapIfNeeded() {
   });
 
   const routeLines = [];
-  const arrowIcon = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 2.6, strokeColor: "#2260D8", fillColor: "#2260D8", fillOpacity: 1 };
+  const arrowIcon = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 3, strokeColor: "#2260D8", fillColor: "#2260D8", fillOpacity: 1 };
   betweenDaySegs.forEach(seg => {
     routeLines.push(new google.maps.Polyline({
       path: seg,
@@ -257,7 +257,7 @@ function initMapIfNeeded() {
       strokeColor: "#2260D8",
       strokeOpacity: 0.8,
       strokeWeight: 2,
-      icons: [{ icon: arrowIcon, offset: "50%" }],
+      icons: [{ icon: arrowIcon, offset: "0%", repeat: "90px" }],
       map: mapInstance,
       zIndex: 1,
     }));
@@ -305,35 +305,62 @@ function initMapIfNeeded() {
   const bounds = new google.maps.LatLngBounds();
   const infoWindow = new google.maps.InfoWindow();
   const stopLabels = computeStopLabels();
+  const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
   STOPS.forEach((s, i) => {
-    const marker = new google.maps.Marker({
+    const pin = document.createElement("div");
+    pin.style.cssText = "display:flex;align-items:flex-end;gap:4px;cursor:pointer;";
+    pin.innerHTML = `
+      <svg width="30" height="38" viewBox="0 0 30 38" style="flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));">
+        <line x1="4" y1="6" x2="4" y2="36" stroke="#3a3a34" stroke-width="2.2"/>
+        <circle cx="4" cy="36.5" r="2.2" fill="#3a3a34"/>
+        <path d="M4 4 L27 4 L20 12 L27 20 L4 20 Z" fill="#0F2544" stroke="#B7975C" stroke-width="1.6"/>
+        <text x="14" y="16" font-size="11" font-weight="700" fill="#B7975C" font-family="'Noto Sans KR',sans-serif" text-anchor="middle">${stopLabels[i]}</text>
+      </svg>
+      <div style="background:rgba(255,252,246,0.96);border:1px solid #B7975C;border-radius:7px;
+        padding:3px 8px;font-size:11.5px;font-weight:700;color:#20242B;white-space:nowrap;
+        box-shadow:0 1px 4px rgba(0,0,0,.18);font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">${s.name}</div>`;
+
+    const marker = new AdvancedMarkerElement({
       position: { lat: s.lat, lng: s.lng },
       map: mapInstance,
-      label: { text: stopLabels[i], color: "#B7975C", fontSize: "10.5px", fontWeight: "700" },
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 13,
-        fillColor: "#0F2544",
-        fillOpacity: 1,
-        strokeColor: "#B7975C",
-        strokeWeight: 2,
-      },
       title: s.name,
+      content: pin,
+      zIndex: 100 + i,
     });
     marker.addListener("click", () => {
       infoWindow.setContent(`
-        <div style="font-family:'Noto Sans KR',sans-serif;min-width:170px;">
-          <div style="font-weight:700;color:#0F2544;font-size:14px;margin-bottom:2px;">${stopLabels[i]}. ${s.name}</div>
+        <div style="font-family:'Noto Sans KR',sans-serif;min-width:190px;">
+          <div style="font-size:10.5px;color:#B7975C;font-weight:700;margin-bottom:2px;">${stopLabels[i]} · 방문 도시</div>
+          <div style="font-weight:700;color:#0F2544;font-size:15px;margin-bottom:3px;">${s.name}</div>
           <div style="font-size:11.5px;color:#6B6458;margin-bottom:5px;">${s.country} · ${s.range}</div>
           <div style="font-size:12px;color:#252220;">${s.note}</div>
         </div>
       `);
-      infoWindow.open(mapInstance, marker);
+      infoWindow.open({ anchor: marker, map: mapInstance });
     });
     mapMarkers.push(marker);
-    bounds.extend(marker.getPosition());
+    bounds.extend({ lat: s.lat, lng: s.lng });
   });
+
+  // 출발·도착 라벨 (전체 경로의 첫/마지막 지점)
+  if (STOPS.length) {
+    new google.maps.Marker({
+      position: { lat: STOPS[0].lat, lng: STOPS[0].lng },
+      map: mapInstance,
+      label: { text: "출발", color: "#0F2544", fontWeight: "700", fontSize: "11px" },
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0.1, fillOpacity: 0, strokeOpacity: 0 },
+      zIndex: 1,
+    });
+    const last = STOPS[STOPS.length - 1];
+    new google.maps.Marker({
+      position: { lat: last.lat, lng: last.lng },
+      map: mapInstance,
+      label: { text: "도착", color: "#0F2544", fontWeight: "700", fontSize: "11px" },
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0.1, fillOpacity: 0, strokeOpacity: 0 },
+      zIndex: 1,
+    });
+  }
 
   mapInstance.fitBounds(bounds, 40);
   const overallBounds = bounds;
