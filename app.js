@@ -225,19 +225,34 @@ function focusDay(dayNo) {
 const CAT_COLOR = { H: "#0F2544", P: "#5B6B4F", T: "#7A7A72", A: "#C99A3E" };
 const CAT_LABEL = { H: "호텔(숙박 거점)", P: "여행지", T: "대중교통·경유지", A: "공항" };
 
-function flagPinEl(letter, color, name) {
+// 말풍선 배경색을 방문 일차(day number)에 따라 회전시켜 날짜별로 구분되게 한다.
+function dayColor(n) {
+  const hue = (n * 47) % 360;
+  return `hsl(${hue}, 58%, 40%)`;
+}
+
+function firstDayFor(id) {
+  const day = DAILY.find(d => (d.route || []).includes(id));
+  return day ? day.no : null;
+}
+
+function flagPinEl(letter, pinColor, name, dayNo) {
+  const bubbleBg = dayNo ? dayColor(dayNo) : "rgba(255,252,246,0.96)";
+  const bubbleBorder = dayNo ? dayColor(dayNo) : "#B7975C";
+  const bubbleText = dayNo ? "#ffffff" : "#20242B";
+  const dayTag = dayNo ? `D${dayNo} · ` : "";
   const pin = document.createElement("div");
   pin.style.cssText = "display:flex;align-items:flex-end;gap:4px;cursor:pointer;";
   pin.innerHTML = `
     <svg width="26" height="33" viewBox="0 0 30 38" style="flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));">
       <line x1="4" y1="6" x2="4" y2="36" stroke="#3a3a34" stroke-width="2.2"/>
       <circle cx="4" cy="36.5" r="2.2" fill="#3a3a34"/>
-      <path d="M4 4 L27 4 L20 12 L27 20 L4 20 Z" fill="${color}" stroke="#fff" stroke-width="1.6"/>
+      <path d="M4 4 L27 4 L20 12 L27 20 L4 20 Z" fill="${pinColor}" stroke="#fff" stroke-width="1.6"/>
       <text x="14" y="16" font-size="11" font-weight="700" fill="#fff" font-family="'Noto Sans KR',sans-serif" text-anchor="middle">${letter}</text>
     </svg>
-    <div style="background:rgba(255,252,246,0.96);border:1px solid ${color};border-radius:7px;
-      padding:2px 7px;font-size:11px;font-weight:700;color:#20242B;white-space:nowrap;
-      box-shadow:0 1px 4px rgba(0,0,0,.18);font-family:'Noto Sans KR',sans-serif;margin-bottom:7px;">${name}</div>`;
+    <div style="background:${bubbleBg};border:1px solid ${bubbleBorder};border-radius:7px;
+      padding:2px 7px;font-size:11px;font-weight:700;color:${bubbleText};white-space:nowrap;
+      box-shadow:0 1px 4px rgba(0,0,0,.18);font-family:'Noto Sans KR',sans-serif;margin-bottom:7px;">${dayTag}${name}</div>`;
   return pin;
 }
 
@@ -299,12 +314,14 @@ async function initMapIfNeeded() {
   const hubIds = new Set(STOPS.map(s => coordToId.get(`${s.lat},${s.lng}`)).filter(Boolean));
 
   STOPS.forEach(s => {
-    const pin = flagPinEl("H", CAT_COLOR.H, s.name);
+    const hubId = coordToId.get(`${s.lat},${s.lng}`);
+    const dayNo = hubId ? firstDayFor(hubId) : null;
+    const pin = flagPinEl("H", CAT_COLOR.H, s.name, dayNo);
     const marker = new AdvancedMarkerElement({ position: { lat: s.lat, lng: s.lng }, map: mapInstance, title: s.name, content: pin, zIndex: 100 });
     marker.addListener("click", () => {
       infoWindow.setContent(`
         <div style="font-family:'Noto Sans KR',sans-serif;min-width:190px;">
-          <div style="font-size:10.5px;color:${CAT_COLOR.H};font-weight:700;margin-bottom:2px;">H · ${CAT_LABEL.H}</div>
+          <div style="font-size:10.5px;color:${CAT_COLOR.H};font-weight:700;margin-bottom:2px;">H · ${CAT_LABEL.H}${dayNo ? " · D" + dayNo + " 도착" : ""}</div>
           <div style="font-weight:700;color:#0F2544;font-size:15px;margin-bottom:3px;">${s.name}</div>
           <div style="font-size:11.5px;color:#6B6458;margin-bottom:5px;">${s.country} · ${s.range}</div>
           <div style="font-size:12px;color:#252220;">${s.note}</div>
@@ -312,7 +329,6 @@ async function initMapIfNeeded() {
       infoWindow.open({ anchor: marker, map: mapInstance });
     });
     mapMarkers.push(marker);
-    const hubId = coordToId.get(`${s.lat},${s.lng}`);
     if (hubId) markersById[hubId] = marker;
     bounds.extend({ lat: s.lat, lng: s.lng });
   });
@@ -321,13 +337,14 @@ async function initMapIfNeeded() {
     if (hubIds.has(id) || !WAYPOINTS[id]) return;
     const cat = WAYPOINT_CATEGORY[id] || "P";
     const color = CAT_COLOR[cat] || CAT_COLOR.P;
+    const dayNo = firstDayFor(id);
     const pos = toLatLng(id);
-    const pin = flagPinEl(cat, color, WAYPOINT_LABELS[id]);
+    const pin = flagPinEl(cat, color, WAYPOINT_LABELS[id], dayNo);
     const marker = new AdvancedMarkerElement({ position: pos, map: mapInstance, title: WAYPOINT_LABELS[id], content: pin, zIndex: 50 });
     marker.addListener("click", () => {
       infoWindow.setContent(`
         <div style="font-family:'Noto Sans KR',sans-serif;min-width:170px;">
-          <div style="font-size:10.5px;color:${color};font-weight:700;margin-bottom:2px;">${cat} · ${CAT_LABEL[cat]}</div>
+          <div style="font-size:10.5px;color:${color};font-weight:700;margin-bottom:2px;">${cat} · ${CAT_LABEL[cat]}${dayNo ? " · D" + dayNo : ""}</div>
           <div style="font-weight:700;color:#0F2544;font-size:13.5px;">${WAYPOINT_LABELS[id]}</div>
         </div>`);
       infoWindow.open({ anchor: marker, map: mapInstance });
@@ -372,6 +389,7 @@ async function initMapIfNeeded() {
     <div class="legend-item"><span class="swatch red"></span>국가 간 이동 — 화살표(${interCount}구간)</div>
     <div class="legend-item"><span class="swatch navy"></span>국내 이동(${intraCount}구간)</div>
     ${Object.keys(CAT_COLOR).map(c => `<div class="legend-item"><span class="swatch cat" style="background:${CAT_COLOR[c]}"></span>${c} · ${CAT_LABEL[c]}</div>`).join("")}
+    <div class="legend-item">말풍선 색 = 방문 일차(D1, D2…)</div>
   `;
 
   document.getElementById("stopList").innerHTML = STOPS.map((s, i) => `
