@@ -13,6 +13,7 @@ const TRIP = {
   totalDays: 60,
   nights: 59,
   people: "부부 2인",
+  updatedAt: "2026-09-27",   // 데이터 최종 업데이트일 — data.js를 고칠 때마다 이 값도 갱신할 것
 };
 
 // ---- 개요 탭 핵심 정보(키-값) ----

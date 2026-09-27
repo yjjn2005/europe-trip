@@ -652,11 +652,24 @@ function renderAddresses() {
   });
 }
 
+// ---------------- App info (update date) ----------------
+function renderAppInfo() {
+  const el = document.getElementById("appInfoKV");
+  if (!el) return;
+  el.innerHTML = `
+    <div class="kv-row"><div class="k">데이터 업데이트</div><div class="v">${TRIP.updatedAt || "-"}</div></div>
+    <div class="kv-row"><div class="k">동기화 서버</div><div class="v">Cloudflare Worker (모든 기기 공통 접속)</div></div>
+  `;
+}
+
 // ---------------- Sync bar ----------------
 function initSyncBar() {
   const input = document.getElementById("pinInput");
   const connectBtn = document.getElementById("pinConnect");
   if (state.pin) input.value = state.pin;
+  // 클릭·포커스하면 기존 값이 전체 선택되어 바로 새 숫자를 입력할 수 있다 (지우고 다시 입력할 필요 없음)
+  input.addEventListener("focus", () => input.select());
+  input.addEventListener("click", () => input.select());
   connectBtn.addEventListener("click", () => connectPin(input.value));
   input.addEventListener("keydown", e => { if (e.key === "Enter") connectPin(input.value); });
 }
@@ -674,6 +687,7 @@ function boot() {
   renderAddresses();
   renderAccommodations();
   initSyncBar();
+  renderAppInfo();
   updateHeaderProgress();
   loadGoogleMaps();
   initMapFullscreen();
