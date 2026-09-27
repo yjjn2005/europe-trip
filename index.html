@@ -6,6 +6,10 @@
 <title>2027 유럽 60일 부부 자유여행 실행계획</title>
 <meta name="description" content="2027 유럽 60일 부부 자유여행 실행계획 — 도심 거점형, 지도·일자별 일정·예산·체크리스트" />
 <meta name="theme-color" content="#0F2544" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="2027 유럽 60일" />
+<meta name="mobile-web-app-capable" content="yes" />
 <link rel="manifest" href="./manifest.json" />
 <link rel="icon" href="./icons/icon-192.png" />
 <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -58,7 +62,12 @@
     <h2 class="section-title">이동경로 지도</h2>
     <p class="section-note">번호는 방문 순서(1a·1b…)입니다. 파란선은 하루→다음날 이동, 빨간선은 당일 오전·오후·저녁 동선(당일투어 왕복)입니다.</p>
     <div class="day-filters" id="mapRegionTabs"></div>
-    <div id="map"></div>
+    <div class="map-wrap" id="mapWrap">
+      <button id="mapFullscreenBtn" class="map-fullscreen-btn" aria-label="지도 전체화면">
+        <span class="ic">⛶</span>
+      </button>
+      <div id="map"></div>
+    </div>
     <div class="map-legend-static" id="mapLegend"></div>
     <div class="stop-list" id="stopList"></div>
   </section>
